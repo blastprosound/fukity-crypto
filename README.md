@@ -1,0 +1,1 @@
+# fukity-crypto
