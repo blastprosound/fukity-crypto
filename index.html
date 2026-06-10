@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FUKITY/CRYPTO</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+  :root {
+    --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;
+    --border:rgba(255,255,255,0.07);
+    --text:#e8e8f0;--muted:#6b6b80;
+    --green:#00d68f;--red:#ff4d6a;--amber:#ffb740;--blue:#4d9fff;
+    --mono:'IBM Plex Mono',monospace;--sans:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;padding-bottom:90px;}
+  header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .logo{font-family:var(--mono);font-size:14px;font-weight:500;letter-spacing:0.08em;color:var(--amber);}
+  .logo span{color:var(--muted);}
+  .status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+  .status-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-family:var(--mono);}
+  .main{padding:16px;max-width:480px;margin:0 auto;}
+  .section-label{font-size:10px;font-family:var(--mono);letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;margin-top:20px;}
+  .portfolio-total{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:6px;}
+  .total-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .total-value{font-family:var(--mono);font-size:28px;font-weight:500;color:var(--text);}
+  .total-pnl{font-family:var(--mono);font-size:12px;margin-top:4px;color:var(--muted);}
+  .portfolio-bar{height:3px;background:var(--bg3);border-radius:2px;margin-top:12px;overflow:hidden;display:flex;gap:2px;}
+  .pbar-seg{height:100%;border-radius:2px;}
+  .green{color:var(--green);}.red{color:var(--red);}.amber{color:var(--amber);}
+  .crypto-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;position:relative;overflow:hidden;}
+  .crypto-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+  .card-buy::before{background:var(--green);}
+  .card-sell::before{background:var(--red);}
+  .card-hold::before{background:var(--amber);}
+  .card-loading::before{background:var(--muted);}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .coin-info{display:flex;align-items:center;gap:10px;}
+  .coin-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:500;flex-shrink:0;}
+  .coin-name{font-size:15px;font-weight:600;}
+  .coin-full{font-size:11px;color:var(--muted);margin-top:1px;}
+  .coin-price-block{text-align:right;}
+  .coin-price{font-family:var(--mono);font-size:14px;font-weight:500;}
+  .coin-change{font-family:var(--mono);font-size:11px;margin-top:2px;}
+  .signal-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-family:var(--mono);font-weight:500;letter-spacing:0.05em;}
+  .signal-buy{background:rgba(0,214,143,0.12);color:var(--green);border:1px solid rgba(0,214,143,0.25);}
+  .signal-sell{background:rgba(255,77,106,0.12);color:var(--red);border:1px solid rgba(255,77,106,0.25);}
+  .signal-hold{background:rgba(255,183,64,0.12);color:var(--amber);border:1px solid rgba(255,183,64,0.25);}
+  .signal-loading{background:rgba(107,107,128,0.1);color:var(--muted);border:1px solid rgba(107,107,128,0.2);}
+  .indicators-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .indicator-pill{background:var(--bg3);border-radius:6px;padding:4px 8px;font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;gap:4px;align-items:center;}
+  .indicator-pill span{color:var(--text);}
+  .holding-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;}
+  .holding-label{color:var(--muted);font-family:var(--mono);}
+  .holding-value{font-family:var(--mono);color:var(--text);}
+  .holding-edit{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 8px;font-family:var(--mono);font-size:11px;width:80px;text-align:right;outline:none;}
+  .holding-edit:focus{border-color:var(--amber);}
+  .alert-banner{background:rgba(255,183,64,0.08);border:1px solid rgba(255,183,64,0.25);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:none;animation:slideIn 0.3s ease;}
+  @keyframes slideIn{from{transform:translateY(-8px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .alert-title{font-size:12px;font-weight:600;color:var(--amber);font-family:var(--mono);margin-bottom:4px;}
+  .alert-text{font-size:12px;color:var(--text);line-height:1.5;}
+  .btn-primary{width:100%;background:var(--amber);color:#0a0a0f;border:none;border-radius:12px;padding:15px;font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:0.05em;cursor:pointer;transition:opacity 0.2s,transform 0.1s;}
+  .btn-primary:active{transform:scale(0.98);opacity:0.9;}
+  .btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+  .btn-secondary{background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 14px;font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:color 0.2s;}
+  .btn-secondary:hover{color:var(--text);}
+  .analysis-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:10px;display:none;}
+  .analysis-box.visible{display:block;animation:slideIn 0.3s ease;}
+  .analysis-header{font-size:10px;font-family:var(--mono);letter-spacing:0.1em;color:var(--amber);text-transform:uppercase;margin-bottom:10px;}
+  .analysis-text{font-size:13px;line-height:1.7;color:var(--text);}
+  .analysis-text strong{color:var(--amber);font-weight:600;}
+  .last-update{text-align:center;font-size:10px;font-family:var(--mono);color:var(--muted);margin-top:14px;}
+  .loading-shimmer{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg2) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px;height:14px;margin-bottom:8px;}
+  @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+  .spinning{animation:spin 1s linear infinite;}
+  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  .top-actions{display:flex;justify-content:flex-end;margin-bottom:4px;}
+  .footer-note{font-size:10px;color:var(--muted);text-align:center;margin-top:20px;line-height:1.6;font-family:var(--mono);}
+  .rsignal-dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
+
+  /* === SCAN SECTION === */
+  .scan-box{background:var(--bg2);border:1px dashed rgba(255,183,64,0.3);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:border-color 0.2s;}
+  .scan-box:hover{border-color:var(--amber);}
+  .scan-icon{font-size:28px;margin-bottom:8px;}
+  .scan-label{font-size:12px;color:var(--muted);font-family:var(--mono);}
+  .scan-label strong{color:var(--amber);}
+  #scanInput{display:none;}
+  .scan-preview{width:100%;border-radius:8px;margin-top:10px;display:none;border:1px solid var(--border);}
+  .scan-result{background:var(--bg3);border-radius:8px;padding:12px;margin-top:10px;display:none;font-size:12px;font-family:var(--mono);}
+  .scan-result-title{color:var(--amber);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;}
+  .scan-coin-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);}
+  .scan-coin-row:last-child{border-bottom:none;}
+  .scan-coin-name{color:var(--muted);}
+  .scan-coin-val{color:var(--text);}
+  .scan-apply-btn{width:100%;margin-top:10px;background:rgba(0,214,143,0.1);border:1px solid rgba(0,214,143,0.3);color:var(--green);border-radius:8px;padding:10px;font-family:var(--mono);font-size:12px;cursor:pointer;}
+  .scan-apply-btn:hover{background:rgba(0,214,143,0.15);}
+  .scan-processing{display:none;font-size:12px;color:var(--muted);font-family:var(--mono);margin-top:8px;text-align:center;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">FUKITY<span>/</span>CRYPTO</div>
+  <div class="status-row">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">conectando...</span>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- ALERT BANNER -->
+  <div id="alertBanner" class="alert-banner">
+    <div class="alert-title">⚡ ALERTA DE SEÑAL</div>
+    <div class="alert-text" id="alertText"></div>
+  </div>
+
+  <!-- PORTFOLIO TOTAL -->
+  <div class="section-label">portafolio total</div>
+  <div class="portfolio-total">
+    <div class="total-label">Valor estimado</div>
+    <div class="total-value" id="totalValue">$—</div>
+    <div class="total-pnl" id="totalPnl">cargando precios...</div>
+    <div class="portfolio-bar" id="portfolioBar"></div>
+  </div>
+
+  <div class="top-actions">
+    <button class="btn-secondary" onclick="refreshAll()" id="refreshBtn">
+      <span id="refreshIcon">↻</span> actualizar
+    </button>
+  </div>
+
+  <!-- SIGNALS -->
+  <div class="section-label">señales en vivo</div>
+  <div id="cardsContainer"></div>
+
+  <!-- SCAN SCREENSHOT -->
+  <div class="section-label">actualizar saldos por foto</div>
+  <div class="scan-box" onclick="document.getElementById('scanInput').click()">
+    <div class="scan-icon">📷</div>
+    <div class="scan-label">Toca para subir un <strong>screenshot de Binance</strong><br>y actualizo tus saldos automáticamente</div>
+    <input type="file" id="scanInput" accept="image/*" onchange="handleScanUpload(event)">
+    <img id="scanPreview" class="scan-preview">
+  </div>
+  <div class="scan-processing" id="scanProcessing">⏳ analizando imagen...</div>
+  <div class="scan-result" id="scanResult">
+    <div class="scan-result-title">saldos detectados</div>
+    <div id="scanResultRows"></div>
+    <button class="scan-apply-btn" onclick="applyScanResults()">✓ aplicar estos saldos al portafolio</button>
+  </div>
+
+  <!-- ANALYZE -->
+  <button class="btn-primary" id="analyzeBtn" onclick="runAnalysis()" style="margin-top:20px;">
+    ⚡ ANALIZAR MERCADO AHORA
+  </button>
+  <div class="analysis-box" id="analysisBox">
+    <div class="analysis-header">análisis · claude</div>
+    <div class="analysis-text" id="analysisText"></div>
+  </div>
+
+  <div class="last-update" id="lastUpdate">—</div>
+  <div class="footer-note">Datos: Binance API pública · Indicadores: RSI 4H + MACD<br>No es asesoría financiera. Confirma siempre antes de operar.</div>
+
+</div>
+
+<script>
+// ── COIN CONFIG ──────────────────────────────────────────────
+const COINS = [
+  { symbol:'BTC', name:'Bitcoin',   pair:'BTCUSDT', color:'#F7931A', bg:'rgba(247,147,26,0.15)', alloc:30 },
+  { symbol:'ETH', name:'Ethereum',  pair:'ETHUSDT', color:'#627EEA', bg:'rgba(98,126,234,0.15)', alloc:25 },
+  { symbol:'SOL', name:'Solana',    pair:'SOLUSDT', color:'#9945FF', bg:'rgba(153,69,255,0.15)', alloc:20 },
+  { symbol:'BNB', name:'BNB',       pair:'BNBUSDT', color:'#F3BA2F', bg:'rgba(243,186,47,0.15)', alloc:15 },
+  { symbol:'LINK',name:'Chainlink', pair:'LINKUSDT',color:'#2775CA', bg:'rgba(39,117,202,0.15)', alloc:10 }
+];
+
+// Holdings en USD — editables manualmente o via scan
+let holdings = { BTC:47.28, ETH:0, SOL:0, BNB:0, LINK:0, USDT:192.41 };
+let scanParsed = {};
+let priceData = {};
+let lastPrices = {};
+let alertsShown = new Set();
+
+// ── INDICATORS ───────────────────────────────────────────────
+function calcRSI(closes, period=14) {
+  if (closes.length < period+1) return null;
+  let gains=0, losses=0;
+  for (let i=closes.length-period; i<closes.length; i++) {
+    const d = closes[i]-closes[i-1];
+    if (d>0) gains+=d; else losses-=d;
+  }
+  const ag=gains/period, al=losses/period;
+  if (al===0) return 100;
+  return Math.round(100 - 100/(1+ag/al));
+}
+
+function calcEMA(data, period) {
+  const k=2/(period+1); let ema=data[0];
+  for (let i=1;i<data.length;i++) ema=data[i]*k+ema*(1-k);
+  return ema;
+}
+
+function calcMACD(closes) {
+  if (closes.length<26) return {hist:null};
+  const ema12=calcEMA(closes.slice(-26),12);
+  const ema26=calcEMA(closes.slice(-26),26);
+  return {hist:(ema12-ema26)>0?'pos':'neg'};
+}
+
+function getSignal(rsi, macdHist, change24h) {
+  if (rsi===null) return {label:'CARGANDO',type:'loading'};
+  let score=0;
+  if (rsi<35) score+=2; else if (rsi<45) score+=1;
+  else if (rsi>65) score-=2; else if (rsi>55) score-=1;
+  if (macdHist==='pos') score+=1; else if (macdHist==='neg') score-=1;
+  if (change24h>3) score-=1; else if (change24h<-3) score+=1;
+  if (score>=2) return {label:'COMPRAR',type:'buy'};
+  if (score<=-2) return {label:'VENDER',type:'sell'};
+  return {label:'MANTENER',type:'hold'};
+}
+
+// ── FORMAT ───────────────────────────────────────────────────
+function fmtPrice(p) {
+  if (p>=1000) return '$'+p.toLocaleString('en',{maximumFractionDigits:0});
+  if (p>=1) return '$'+p.toFixed(2);
+  return '$'+p.toFixed(4);
+}
+function fmtChange(c) { return (c>=0?'+':'')+c.toFixed(2)+'%'; }
+
+// ── BUILD CARDS ──────────────────────────────────────────────
+function buildCards() {
+  const container = document.getElementById('cardsContainer');
+  container.innerHTML = '';
+  COINS.forEach(coin => {
+    const h = holdings[coin.symbol] || 0;
+    const card = document.createElement('div');
+    card.className = 'crypto-card card-loading';
+    card.id = 'card-'+coin.symbol;
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="coin-info">
+          <div class="coin-icon" style="background:${coin.bg};color:${coin.color}">${coin.symbol}</div>
+          <div>
+            <div class="coin-name">${coin.symbol}</div>
+            <div class="coin-full">${coin.name}</div>
+          </div>
+        </div>
+        <div class="coin-price-block">
+          <div class="coin-price" id="price-${coin.symbol}">—</div>
+          <div class="coin-change" id="change-${coin.symbol}">—</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="indicators-row">
+          <div class="indicator-pill">RSI <span id="rsi-${coin.symbol}">—</span></div>
+          <div class="indicator-pill">MACD <span id="macd-${coin.symbol}">—</span></div>
+        </div>
+        <div class="signal-badge signal-loading" id="signal-${coin.symbol}">
+          <div class="rsignal-dot" style="background:currentColor"></div>
+          <span>CARGANDO</span>
+        </div>
+      </div>
+      <div class="holding-row">
+        <span class="holding-label">en cartera (USD)</span>
+        <input class="holding-edit" type="number" id="holding-${coin.symbol}" value="${h.toFixed(2)}" min="0" step="0.01" onchange="updateHolding('${coin.symbol}', this.value)">
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function updateHolding(symbol, value) {
+  holdings[symbol] = parseFloat(value) || 0;
+  updatePortfolioTotal();
+}
+
+// ── FETCH ────────────────────────────────────────────────────
+async function fetchKlines(pair) {
+  try {
+    const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=${pair}&interval=4h&limit=50`);
+    const d = await r.json();
+    return d.map(k=>parseFloat(k[4]));
+  } catch { return []; }
+}
+
+async function fetchTicker(pair) {
+  try {
+    const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${pair}`);
+    return await r.json();
+  } catch { return null; }
+}
+
+// ── UPDATE COIN ──────────────────────────────────────────────
+async function updateCoin(coin) {
+  const [ticker, klines] = await Promise.all([fetchTicker(coin.pair), fetchKlines(coin.pair)]);
+  if (!ticker || !ticker.lastPrice) return;
+
+  const price = parseFloat(ticker.lastPrice);
+  const change = parseFloat(ticker.priceChangePercent);
+  const rsi = calcRSI(klines);
+  const {hist} = calcMACD(klines);
+  const signal = getSignal(rsi, hist, change);
+
+  priceData[coin.symbol] = {price, change, rsi, macd:hist};
+  lastPrices[coin.symbol] = price;
+
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  const setStyle = (id, prop, val) => { const el=document.getElementById(id); if(el) el.style[prop]=val; };
+
+  set('price-'+coin.symbol, fmtPrice(price));
+  const changeEl = document.getElementById('change-'+coin.symbol);
+  if (changeEl) { changeEl.textContent=fmtChange(change); changeEl.className='coin-change '+(change>=0?'green':'red'); }
+
+  const rsiEl = document.getElementById('rsi-'+coin.symbol);
+  if (rsiEl) { rsiEl.textContent=rsi!==null?rsi:'—'; rsiEl.style.color=rsi<35?'var(--green)':rsi>65?'var(--red)':'var(--text)'; }
+
+  const macdEl = document.getElementById('macd-'+coin.symbol);
+  if (macdEl) { macdEl.textContent=hist==='pos'?'▲':hist==='neg'?'▼':'—'; macdEl.style.color=hist==='pos'?'var(--green)':'var(--red)'; }
+
+  const sigEl = document.getElementById('signal-'+coin.symbol);
+  if (sigEl) { sigEl.className=`signal-badge signal-${signal.type}`; sigEl.innerHTML=`<div class="rsignal-dot" style="background:currentColor"></div><span>${signal.label}</span>`; }
+
+  const card = document.getElementById('card-'+coin.symbol);
+  if (card) card.className=`crypto-card card-${signal.type==='loading'?'hold':signal.type}`;
+
+  checkAlerts(coin, signal, rsi, change);
+}
+
+// ── PORTFOLIO TOTAL ──────────────────────────────────────────
+function updatePortfolioTotal() {
+  let cryptoTotal = 0;
+  COINS.forEach(c => { cryptoTotal += holdings[c.symbol] || 0; });
+  const grandTotal = cryptoTotal + (holdings.USDT || 0);
+  document.getElementById('totalValue').textContent = '$' + grandTotal.toFixed(2);
+  document.getElementById('totalPnl').textContent = `cripto: $${cryptoTotal.toFixed(2)} · USDT: $${(holdings.USDT||0).toFixed(2)}`;
+
+  const bar = document.getElementById('portfolioBar');
+  bar.innerHTML = COINS.map(c=>`<div class="pbar-seg" style="flex:${c.alloc};background:${c.color};opacity:0.7"></div>`).join('')
+    + `<div class="pbar-seg" style="flex:5;background:#2dd4bf;opacity:0.7"></div>`;
+}
+
+// ── ALERTS ───────────────────────────────────────────────────
+function checkAlerts(coin, signal, rsi, change) {
+  if (signal.type==='buy' && !alertsShown.has(coin.symbol+'_buy')) {
+    alertsShown.add(coin.symbol+'_buy');
+    showAlert(`${coin.symbol} — Señal COMPRA · RSI ${rsi} (sobreventa). Máx. 5% del portafolio.`);
+    playBeep(440);
+  } else if (signal.type==='sell' && !alertsShown.has(coin.symbol+'_sell')) {
+    alertsShown.add(coin.symbol+'_sell');
+    showAlert(`${coin.symbol} — Señal VENTA · RSI ${rsi} (sobrecompra). Evalúa tomar ganancias.`);
+    playBeep(330);
+  }
+}
+
+function showAlert(text) {
+  const b=document.getElementById('alertBanner');
+  document.getElementById('alertText').textContent=text;
+  b.style.display='block';
+  setTimeout(()=>{ b.style.display='none'; },18000);
+}
+
+function playBeep(freq) {
+  try {
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator(), gain=ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value=freq;
+    gain.gain.setValueAtTime(0.3,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.6);
+  } catch(e){}
+}
+
+// ── REFRESH ALL ──────────────────────────────────────────────
+async function refreshAll() {
+  const btn=document.getElementById('refreshBtn');
+  const icon=document.getElementById('refreshIcon');
+  btn.disabled=true; icon.classList.add('spinning');
+  document.getElementById('statusText').textContent='actualizando...';
+
+  await Promise.all(COINS.map(c=>updateCoin(c)));
+  updatePortfolioTotal();
+
+  const now=new Date();
+  document.getElementById('lastUpdate').textContent=
+    `última actualización: ${now.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}`;
+  document.getElementById('statusText').textContent='en vivo';
+  btn.disabled=false; icon.classList.remove('spinning');
+}
+
+// ── SCAN SCREENSHOT ──────────────────────────────────────────
+async function handleScanUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const preview = document.getElementById('scanPreview');
+  const processing = document.getElementById('scanProcessing');
+  const resultBox = document.getElementById('scanResult');
+
+  // Show preview
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    processing.style.display = 'block';
+    resultBox.style.display = 'none';
+
+    // Send to Claude vision
+    const base64 = e.target.result.split(',')[1];
+    const mediaType = file.type || 'image/jpeg';
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: { type: 'base64', media_type: mediaType, data: base64 }
+              },
+              {
+                type: 'text',
+                text: `Analiza este screenshot de Binance. Extrae los saldos en USD de estas criptomonedas si aparecen: BTC, ETH, SOL, BNB, LINK, USDT.
+Responde SOLO con JSON puro, sin texto adicional, sin markdown, sin explicaciones. Formato exacto:
+{"BTC":0,"ETH":0,"SOL":0,"BNB":0,"LINK":0,"USDT":0}
+Si una moneda no aparece en la imagen, pon 0. Usa los valores en USD (no en cripto). Si ves valores en EUR, multiplica por 1.08 para convertir aproximadamente a USD.`
+              }
+            ]
+          }]
+        })
+      });
+
+      const data = await res.json();
+      const raw = data.content?.[0]?.text || '{}';
+      const clean = raw.replace(/```json|```/g,'').trim();
+      scanParsed = JSON.parse(clean);
+
+      // Show results
+      const rows = document.getElementById('scanResultRows');
+      rows.innerHTML = Object.entries(scanParsed)
+        .filter(([k,v]) => v > 0)
+        .map(([k,v]) => `<div class="scan-coin-row"><span class="scan-coin-name">${k}</span><span class="scan-coin-val">$${parseFloat(v).toFixed(2)}</span></div>`)
+        .join('') || '<div style="color:var(--muted);padding:4px 0;">No se detectaron saldos. Intenta con otra imagen.</div>';
+
+      processing.style.display = 'none';
+      resultBox.style.display = 'block';
+
+    } catch(err) {
+      processing.style.display = 'none';
+      processing.textContent = 'Error al analizar imagen. Intenta de nuevo.';
+      processing.style.display = 'block';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyScanResults() {
+  if (!scanParsed || Object.keys(scanParsed).length === 0) return;
+  
+  Object.entries(scanParsed).forEach(([symbol, val]) => {
+    if (symbol in holdings) {
+      holdings[symbol] = parseFloat(val) || 0;
+      // Update input field if exists
+      const input = document.getElementById('holding-'+symbol);
+      if (input) input.value = holdings[symbol].toFixed(2);
+    }
+  });
+
+  updatePortfolioTotal();
+
+  const resultBox = document.getElementById('scanResult');
+  resultBox.style.background = 'rgba(0,214,143,0.08)';
+  resultBox.style.borderColor = 'rgba(0,214,143,0.3)';
+  setTimeout(() => {
+    resultBox.style.background = '';
+    resultBox.style.borderColor = '';
+  }, 2000);
+}
+
+// ── ANALYSIS ─────────────────────────────────────────────────
+async function runAnalysis() {
+  const btn=document.getElementById('analyzeBtn');
+  const box=document.getElementById('analysisBox');
+  const textEl=document.getElementById('analysisText');
+
+  btn.disabled=true; btn.textContent='ANALIZANDO...';
+  box.classList.add('visible');
+  textEl.innerHTML='<div class="loading-shimmer"></div><div class="loading-shimmer" style="width:75%"></div><div class="loading-shimmer" style="width:60%"></div>';
+
+  const summary = COINS.map(c=>{
+    const d=priceData[c.symbol];
+    if (!d) return `${c.symbol}: sin datos`;
+    return `${c.symbol}: $${d.price.toFixed(2)}, 24h ${fmtChange(d.change)}, RSI ${d.rsi}, MACD ${d.macd==='pos'?'positivo':'negativo'}, en cartera $${(holdings[c.symbol]||0).toFixed(2)}`;
+  }).join('\n');
+
+  const totalPortfolio = COINS.reduce((s,c)=>s+(holdings[c.symbol]||0),0) + (holdings.USDT||0);
+
+  const prompt = `Eres un asesor de criptomonedas directo y objetivo. Habla en español. Sé breve, concreto, sin rodeos. No complazcas.
+
+Portafolio de Fukity — capital total: $${totalPortfolio.toFixed(2)} USD, perfil riesgo medio, horizonte 18 meses.
+Distribución objetivo: BTC 30%, ETH 25%, SOL 20%, BNB 15%, LINK 10%.
+
+Datos de mercado ahora:
+${summary}
+USDT disponible: $${(holdings.USDT||0).toFixed(2)}
+
+Responde con estas 4 secciones exactas:
+1. MERCADO AHORA (2 líneas máx)
+2. MEJOR SEÑAL (cuál cripto y por qué en 1 línea)
+3. RIESGO HOY (qué vigilar)
+4. ACCIÓN CONCRETA (qué hacer con el USDT disponible si lo hay, o mantener)
+
+Máximo 160 palabras. Sin disclaimers.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || 'No se pudo obtener análisis.';
+    textEl.innerHTML = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  } catch(e) {
+    textEl.textContent = 'Error de conexión. Verifica tu red e intenta de nuevo.';
+  }
+
+  btn.disabled=false;
+  btn.textContent='⚡ ANALIZAR MERCADO AHORA';
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+buildCards();
+updatePortfolioTotal();
+refreshAll();
+setInterval(refreshAll, 120000);
+</script>
+</body>
+</html>
